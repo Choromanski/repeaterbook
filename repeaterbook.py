@@ -9,7 +9,7 @@ soup = BeautifulSoup(page_response.content, "html.parser").findAll("table")[3]
 
 state = {}
 for a in soup.findAll('a', href=True):
-	state[a['href'].rstrip()[-2:]] = a.contents[0].rstrip()
+	state[a['href'].strip()[-2:]] = a.contents[0].strip()
 
 print("States")
 for i in state:
@@ -20,7 +20,6 @@ state_id = int(input("Selection ID: "))
 print(state[str(state_id).zfill(2)])
 
 page_response = requests.get(URL + str(state_id).zfill(2))
-#print(page_response.content)
 
 print("1) Nearest city/town\n2) County")
 
@@ -45,9 +44,22 @@ loc = int(input("Selection ID: "))
 print(location[str(loc)]['name'])
 
 page_response = requests.get('https://www.repeaterbook.com/repeaters/' + location[str(loc)]['href'])
-#page_response = requests.get('https://www.repeaterbook.com/repeaters/' + 'location_search.php?type=county&state_id=42&loc=Bucks')
 
 soup = BeautifulSoup(page_response.content, "html.parser").findAll("table")[2]
 
-print(soup)
+output_rows = []
+for table_row in soup.findAll('tr'):
+	columns = table_row.findAll('td')
+	output_row = []
+	for column in columns:
+		output_row.append(column.text.replace('\n', ' ').strip())
+	if len(output_row) > 4:
+		output_row.pop()
+		output_rows.append(output_row)
 
+with open('output.csv', 'w+', newline='') as csvfile:
+	writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+	writer.writerow(['Frequency', 'Offset', 'Tone In / Out', 'Location', 'County', 'Call', 'Use'])
+	writer.writerows(output_rows)
+
+print("output.csv created.")
