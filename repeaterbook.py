@@ -47,6 +47,7 @@ page_response = requests.get('https://www.repeaterbook.com/repeaters/' + locatio
 
 soup = BeautifulSoup(page_response.content, "html.parser").findAll("table")[2]
 
+count = 1
 output_rows = []
 for table_row in soup.findAll('tr'):
 	columns = table_row.findAll('td')
@@ -55,11 +56,13 @@ for table_row in soup.findAll('tr'):
 		output_row.append(column.text.replace('\n', ' ').strip())
 	if len(output_row) > 4:
 		output_row.pop()
-		output_rows.append(output_row)
+		temp = [count, output_row[3].upper().replace(',', ''), output_row[0], output_row[1][0], output_row[1][1:].replace(' MHz', ''), "Tone", output_row[2].split(' /')[0], 88.5, 23, "NN", "FM", 5, '', '', '', '', '', '']
+		output_rows.append(temp)
+		count += 1
 
 with open('output.csv', 'w+', newline='') as csvfile:
 	writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-	writer.writerow(['Frequency', 'Offset', 'Tone In / Out', 'Location', 'County', 'Call', 'Use'])
+	writer.writerow(['Location', 'Name', 'Frequency', 'Duplex', 'Offset', 'Tone', 'rToneFreq', 'cToneFreq', 'DtcsCode', 'DtcsPolarity', 'Mode', 'TStep', 'Skip', 'Comment', 'URCALL', 'RPT1CALL', 'RPT2CALL', 'DVCODE'])
 	writer.writerows(output_rows)
 
 print("output.csv created.")
